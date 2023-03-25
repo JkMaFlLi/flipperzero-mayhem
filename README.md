@@ -6,4 +6,4 @@
 
 ![IMG_20230310_205705](https://user-images.githubusercontent.com/1091420/224445146-91255a49-c85f-4463-8a26-70887bbac381.jpg)
 
-<blockquote class="imgur-embed-pub" lang="en" data-id="a/PrBmakI"  ><a href="//imgur.com/a/PrBmakI">mayhem hat w/external antenna ?</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+
