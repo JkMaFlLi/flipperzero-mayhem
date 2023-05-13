@@ -4,8 +4,7 @@ bool configESPCamera_initialized = false;
 
 void configESPCamera() {
   if(configESPCamera_initialized)
-    return;
-  configESPCamera_initialized = true;
+    esp_camera_deinit();
 
   // Object to store the camera configuration parameters
   camera_config_t config;
@@ -48,6 +47,7 @@ void configESPCamera() {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
+  configESPCamera_initialized = true;
 
   // Camera quality adjustments
   sensor_t * s = esp_camera_sensor_get();
@@ -119,10 +119,12 @@ void takeNewPhoto(String path, bool flash) {
   {
     pinMode(4, OUTPUT);
     digitalWrite(4, HIGH);
-    delay(200);
+    delay(100);
   }
+
   esp_camera_fb_get();
-  delay(100);
+  delay(300);
+
   camera_fb_t  * fb = esp_camera_fb_get();
   if (flash)
   {
@@ -187,20 +189,23 @@ void CommandLine::main(uint32_t currentTime) {
 
 LinkedList<String> CommandLine::parseCommand(String input, char* delim) {
   LinkedList<String> cmd_args;
-  
-  if (input != "") {
-    
-    char fancy[input.length() + 1] = {};
-    input.toCharArray(fancy, input.length() + 1);
-        
-    char* ptr = strtok(fancy, delim);
-  
-    while (ptr != NULL) {
-      cmd_args.add(String(ptr));
-  
-      ptr = strtok(NULL, delim);
+
+  bool inQuote = false;
+  String buffer = "";
+
+  for (int i = 0; i < input.length(); i++) {
+    char c = input.charAt(i);
+    // Do not break parameters that are enclosed in quotes
+    if (c == '"') {
+      inQuote = !inQuote;
+    } else if (!inQuote && strchr(delim, c) != NULL) {
+      cmd_args.add(buffer);
+      buffer = "";
+    } else {
+      buffer += c;
     }
   }
+  cmd_args.add(buffer);
 
   return cmd_args;
 }
@@ -341,7 +346,7 @@ void CommandLine::runCommand(String input) {
 
     // Initialize the MicroSD
     Serial.print("Initializing the MicroSD card module... ");
-    initMicroSDCard();
+    //initMicroSDCard();
 
     int i = 0;
     while (true)
@@ -355,6 +360,7 @@ void CommandLine::runCommand(String input) {
     }
     Serial.println("Camera capture finish");
   }
+  
   // Clear APs
   else if (cmd_args.get(0) == CLEARAP_CMD) {
     int ap_sw = this->argSearch(&cmd_args, "-a"); // APs
@@ -697,12 +703,16 @@ void CommandLine::runCommand(String input) {
       }
       // Update via SD
       else if (sd_sw != -1) {
-        if (!sd_obj.supported) {
-          Serial.println("SD card is not connected. Cannot perform SD Update");
-          return;
-        }
-        wifi_scan_obj.currentScanMode = OTA_UPDATE;
-        sd_obj.runUpdate();
+        #ifndef WRITE_PACKETS_SERIAL
+          if (!sd_obj.supported) {
+            Serial.println("SD card is not connected. Cannot perform SD Update");
+            return;
+          }
+          wifi_scan_obj.currentScanMode = OTA_UPDATE;
+          sd_obj.runUpdate();
+        #else
+          Serial.println("SD card not initialized. Cannot perform SD Update");
+        #endif
       }
     }
   }

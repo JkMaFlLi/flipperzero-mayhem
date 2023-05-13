@@ -88,6 +88,7 @@ esp_err_t esp_wifi_80211_tx(wifi_interface_t ifx, const void *buffer, int len, b
 
 struct ssid {
   String essid;
+  int channel;
   int bssid[6];
   bool selected;
 };
@@ -301,6 +302,7 @@ class WiFiScan
     //lv_obj_t * scr = lv_cont_create(NULL, NULL);
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT(); 
+    wifi_config_t ap_config;
 
     char* stringToChar(String string);
     void RunSetup();
@@ -345,5 +347,6 @@ class WiFiScan
     static void activeEapolSnifferCallback(void* buf, wifi_promiscuous_pkt_type_t type);
     static void eapolSnifferCallback(void* buf, wifi_promiscuous_pkt_type_t type);
     static void wifiSnifferCallback(void* buf, wifi_promiscuous_pkt_type_t type);
+    static void addPacket(wifi_promiscuous_pkt_t *snifferPacket, int len);
 };
 #endif

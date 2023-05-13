@@ -43,32 +43,33 @@ bool SDInterface::initSD() {
     //    Serial.println(F("SD: UNKNOWN Card Mounted"));
 
     this->cardSizeMB = SD_MMC.cardSize() / (1024 * 1024);
-
+    
     //Serial.printf("SD Card Size: %lluMB\n", this->cardSizeMB);
 
     if (this->supported) {
       const int NUM_DIGITS = log10(this->cardSizeMB) + 1;
-
+    
       char sz[NUM_DIGITS + 1];
-
-      sz[NUM_DIGITS] = 0;
-      for (size_t i = NUM_DIGITS; i--; this->cardSizeMB /= 10) {
-        sz[i] = '0' + (this->cardSizeMB % 10);
-        display_string.concat((String)sz[i]);
+     
+      sz[NUM_DIGITS] =  0;
+      for ( size_t i = NUM_DIGITS; i--; this->cardSizeMB /= 10)
+      {
+          sz[i] = '0' + (this->cardSizeMB % 10);
+          display_string.concat((String)sz[i]);
       }
-
+  
       this->card_sz = sz;
     }
 
     buffer_obj = Buffer();
-
+    
     if (!SD_MMC.exists("/SCRIPTS")) {
       Serial.println("/SCRIPTS does not exist. Creating...");
 
       SD_MMC.mkdir("/SCRIPTS");
       Serial.println("/SCRIPTS created");
     }
-
+    
     return true;
   }
 }
@@ -81,7 +82,8 @@ void SDInterface::addPacket(uint8_t* buf, uint32_t len) {
 
 void SDInterface::openCapture(String file_name) {
   if (this->supported)
-    buffer_obj.open(&SD_MMC, file_name);
+    buffer_obj.createPcapFile(&SD_MMC, file_name);
+    buffer_obj.open();
 }
 
 void SDInterface::runUpdate() {
@@ -153,7 +155,7 @@ void SDInterface::runUpdate() {
   }
 }
 
-void SDInterface::performUpdate(Stream& updateSource, size_t updateSize) {
+void SDInterface::performUpdate(Stream &updateSource, size_t updateSize) {
   if (Update.begin(updateSize)) {   
     #ifdef HAS_SCREEN
       display_obj.tft.println(text_table2[5] + String(updateSize));
